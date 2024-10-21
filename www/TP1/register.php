@@ -1,6 +1,32 @@
 <?php
-//Le code pour s'inscrire
 
+    session_start();
+
+    include 'UserValidator.class.php';
+    include 'User.class.php';
+
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $firstname = $_POST["firstname"];
+        $lastname = $_POST["lastname"];
+        $email = $_POST["email"];
+        $password = $_POST["password"];
+        $confirmPwd = $_POST["passwordConfirm"];
+    
+        if (class_exists('User') && class_exists('UserValidator')) {
+            $user = new User($firstname, $lastname, $email, $password);
+            $validator = new UserValidator();
+    
+            $errors = $validator->validateSignUp($user, $confirmPwd);
+    
+            if (empty($errors)) {
+                $user->save(); 
+                header("Location: login.php");
+                exit(); 
+            }
+        } else {
+            $errors[] = "Erreur: la classe ou le validateur n'existe pas.";
+        }
+    }
 ?>
 
 <h1>S'inscrire</h1>
@@ -17,13 +43,18 @@
 </div>
 
 <div style="background-color: red">
-    <ul>
-        <li>Les erreurs</li>
-        <li>Les erreurs</li>
+    <ul id="errorList">
+        <?php
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    echo "<li>$error</li>";
+                }
+            }
+        ?>
     </ul>
 </div>
 
-<form method="POST" action="login.php">
+<form method="POST" action="register.php">
     <input type="text" name="firstname" placeholder="Votre prénom" required><br>
     <input type="text" name="lastname" placeholder="Votre nom" required><br>
     <input type="email" name="email" placeholder="Votre email" required><br>

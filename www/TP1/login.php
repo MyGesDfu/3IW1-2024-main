@@ -4,6 +4,8 @@
     $email = $_POST["email"];
     $pwd = $_POST["password"];
 
+    // if($_POST["email"] == )
+
 ?>
 
 <h1>Se connecter</h1>
@@ -20,9 +22,14 @@
 </div>
 
 <div style="background-color: red">
-    <ul>
-        <li>Les erreurs</li>
-        <li>Les erreurs</li>
+    <ul id="errorList">
+        <?php
+            if (!empty($errors)) {
+                foreach ($errors as $error) {
+                    echo "<li>$error</li>";
+                }
+            }
+        ?>
     </ul>
 </div>
 
