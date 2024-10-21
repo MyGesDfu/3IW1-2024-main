@@ -7,6 +7,6 @@
     </ul>
 
     <ul>
-        <li><a href="login.php">Déconnexion</a></li>
+        <li><a href="logout.php">Déconnexion</a></li>
     </ul>
 </div>

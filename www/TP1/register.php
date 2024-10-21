@@ -1,32 +1,49 @@
 <?php
+session_start();
+$errors = [];
 
-    session_start();
+include 'UserValidator.class.php';
+include 'User.class.php';
+include 'Sqlite.class.php'; 
 
-    include 'UserValidator.class.php';
-    include 'User.class.php';
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $firstname = $_POST["firstname"];
+    $lastname = $_POST["lastname"];
+    $email = $_POST["email"];
+    $password = $_POST["password"];
+    $confirmPwd = $_POST["passwordConfirm"];
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $firstname = $_POST["firstname"];
-        $lastname = $_POST["lastname"];
-        $email = $_POST["email"];
-        $password = $_POST["password"];
-        $confirmPwd = $_POST["passwordConfirm"];
-    
-        if (class_exists('User') && class_exists('UserValidator')) {
-            $user = new User($firstname, $lastname, $email, $password);
-            $validator = new UserValidator();
-    
-            $errors = $validator->validateSignUp($user, $confirmPwd);
-    
-            if (empty($errors)) {
-                $user->save(); 
-                header("Location: login.php");
-                exit(); 
+    if (class_exists('User') && class_exists('UserValidator')) {
+        $user = new User($firstname, $lastname, $email, $password);
+        $validator = new UserValidator();
+
+        $errors = $validator->validateSignUp($user, $confirmPwd);
+
+        if (empty($errors)) {
+            // Connexion à la base de données
+            $db = new Database();
+            $pdo = $db->getPdo();
+
+            // Vérifier si l'email existe déjà
+            if ($pdo) {
+                $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+                $stmt->execute([$email]);
+                if ($stmt->fetch()) {
+                    $errors[] = "Cet email est déjà utilisé.";
+                } else {
+                    // Sauvegarder l'utilisateur
+                    $user->save($pdo);
+                    header("Location: login.php");
+                    exit();
+                }
+            } else {
+                $errors[] = "Erreur de connexion à la base de données.";
             }
-        } else {
-            $errors[] = "Erreur: la classe ou le validateur n'existe pas.";
         }
+    } else {
+        $errors[] = "Erreur: la classe ou le validateur n'existe pas.";
     }
+}
 ?>
 
 <h1>S'inscrire</h1>

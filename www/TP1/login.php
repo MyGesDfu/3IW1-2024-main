@@ -1,11 +1,37 @@
 <?php
-    //Le code pour se connecter
-    print_r($_POST);
+session_start();
+$errors = [];
+
+include 'UserValidator.class.php';
+include 'User.class.php';
+include 'Sqlite.class.php'; 
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST["email"];
     $pwd = $_POST["password"];
 
-    // if($_POST["email"] == )
+    // Connexion à la base de données
+    $db = new Database();
+    $pdo = $db->getPdo();
 
+    // Préparation de la requête pour récupérer l'utilisateur par email
+    if ($pdo) {
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Vérification de l'utilisateur
+        if ($user && password_verify($pwd, $user['password'])) {
+            $_SESSION["user"] = $user["email"];
+            header("Location: dashboard.php");
+            exit();
+        } else {
+            $errors[] = "Email ou mot de passe incorrect.";
+        }
+    } else {
+        $errors[] = "Erreur de connexion à la base de données.";
+    }
+}
 ?>
 
 <h1>Se connecter</h1>
